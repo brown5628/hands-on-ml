@@ -7,7 +7,12 @@ import tarfile
 import urllib
 import pandas as pd
 from zlib import crc32
+from pandas.plotting import scatter_matrix
 from sklearn.model_selection import train_test_split, StratifiedShuffleSplit
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import OrdinalEncoder, OneHotEncoder
+from sklearn.base import BaseEstimator, TransformerMixin
+
 
 # %%
 mpl.rc("axes", labelsize=14)
@@ -153,3 +158,140 @@ for set_ in (strat_train_set, strat_test_set):
     set_.drop("income_cat", axis=1, inplace=True)
 
 # %%
+housing = strat_train_set.copy()
+
+# %%
+housing.plot(kind="scatter", x="longitude", y="latitude")
+
+# %%
+housing.plot(kind="scatter", x="longitude", y="latitude", alpha=0.1)
+
+# %%
+housing.plot(
+    kind="scatter",
+    x="longitude",
+    y="latitude",
+    alpha=0.4,
+    s=housing["population"] / 100,
+    label="population",
+    figsize=(10, 7),
+    c="median_house_value",
+    cmap=plt.get_cmap("jet"),
+    colorbar=True,
+    sharex=False,
+)
+plt.legend()
+
+# %%
+corr_matrix = housing.corr()
+corr_matrix["median_house_value"].sort_values(ascending=False)
+
+# %%
+attributes = [
+    "median_house_value",
+    "median_income",
+    "total_rooms",
+    "housing_median_age",
+]
+scatter_matrix(housing[attributes], figsize=(12, 8))
+
+
+# %%
+housing.plot(kind="scatter", x="median_income", y="median_house_value", alpha=0.1)
+plt.axis([0, 16, 0, 550000])
+
+
+# %%
+housing["rooms_per_household"] = housing["total_rooms"] / housing["households"]
+housing["bedrooms_per_room"] = housing["total_bedrooms"] / housing["total_rooms"]
+housing["population_per_household"] = housing["population"] / housing["households"]
+
+# %%
+corr_matrix = housing.corr()
+corr_matrix["median_house_value"].sort_values(ascending=False)
+
+# %%
+housing.plot(kind="scatter", x="rooms_per_household", y="median_house_value", alpha=0.2)
+plt.axis([0, 5, 0, 520000])
+
+# %%
+housing.describe()
+
+# %%
+housing = strat_train_set.drop("median_house_value", axis=1)
+housing_labels = strat_train_set["median_house_value"].copy()
+
+# %%
+sample_incomplete_rows = housing[housing.isnull().any(axis=1)].head()
+sample_incomplete_rows
+
+# %%
+sample_incomplete_rows.dropna(subset=["total_bedrooms"])
+
+# %%
+sample_incomplete_rows.drop("total_bedrooms", axis=1)
+
+# %%
+median = housing["total_bedrooms"].median()
+sample_incomplete_rows["total_bedrooms"].fillna(median, inplace=True)
+sample_incomplete_rows
+
+# %%
+imputer = SimpleImputer(strategy="median")
+
+
+# %%
+housing_num = housing.drop("ocean_proximity", axis=1)
+
+# %%
+imputer.fit(housing_num)
+
+# %%
+imputer.statistics_
+
+# %%
+housing_num.median().values
+
+# %%
+X = imputer.transform(housing_num)
+housing_tr = pd.DataFrame(X, columns=housing_num.columns, index=housing.index)
+housing_tr.loc[sample_incomplete_rows.index.values]
+
+# %%
+imputer.strategy
+
+# %%
+housing_cat = housing[["ocean_proximity"]]
+housing_cat.head(10)
+
+# %%
+ordinal_encoder = OrdinalEncoder()
+housing_cat_encoded = ordinal_encoder.fit_transform(housing_cat)
+housing_cat_encoded[:10]
+
+# %%
+ordinal_encoder.categories_
+
+# %%
+cat_encoder = OneHotEncoder()
+housing_cat_1hot = cat_encoder.fit_transform(housing_cat)
+housing_cat_1hot
+
+# %%
+housing_cat_1hot.toarray()
+
+# %%
+cat_encoder.categories_
+
+# %%
+# rooms_ix, bedrooms_ix, population_ix, households_ix = 3,4,5,6
+
+
+# class CombinedAttributesAdder(BaseEstimator, TransformerMixin):
+
+
+# def __init__(self, add_bedrooms_per_room = True):
+#    self.add_bedrooms_per_room = add_bedrooms_per_room
+
+
+# def fit()

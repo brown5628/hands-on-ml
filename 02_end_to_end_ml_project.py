@@ -539,3 +539,11 @@ joblib.dump(my_model, "my_model.pkl")
 my_model_loaded = joblib.load("my_model.pkl")
 
 # %%
+param_grid = [
+    {'kernel': ['linear'], 'C': [10.,30.,100.,300.,1000.,3000.,10000.,30000.]},
+    {'kernel': ['rbf'], 'C': [1.0, 3.0, 10.,30.,100., 300., 1000.], 'gamma': [.01, .03, .1, .3, 1.0, 3.0]}
+]
+
+svm_reg = SVR 
+grid_search = GridSearchCV(svm_reg, param_grid, cv=5, scoring='neg_mean_squared_error', verbose=2)
+grid_search.fit(housing_prepared, housing_labels)

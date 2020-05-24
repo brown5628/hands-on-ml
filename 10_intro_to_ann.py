@@ -1,7 +1,5 @@
 # %%
 import sys
-
-# import tensorflow as tf 
 import numpy as np 
 import os
 import matplotlib as mpl 
@@ -9,6 +7,8 @@ import matplotlib.pyplot as plt
 import sklearn
 from sklearn.datasets import load_iris 
 from sklearn.linear_model import Perceptron
+import tensorflow as tf
+from tensorflow import keras
 
 # %%
 iris = load_iris()
@@ -23,5 +23,10 @@ y_pred = per_clf.predict([[2, .5]])
 # %%
 y_pred 
 
+# %%
+tf.__version__
+
+# %%
+keras.__version__
 
 # %%

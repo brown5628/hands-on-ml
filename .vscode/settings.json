@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "/home/brown5628/anaconda3/envs/hands-on-ml/bin/python",
+    "python.pythonPath": "/home/brown5628/miniforge3/envs/sklearn-dev/bin/python",
     "python.linting.pylintEnabled": false,
     "python.linting.flake8Enabled": true,
     "python.linting.enabled": true,

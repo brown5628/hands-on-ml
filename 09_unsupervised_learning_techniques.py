@@ -10,6 +10,14 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import GridSearchCV
+from sklearn.cluster import DBSCAN 
+from sklearn.datasets import make_moons 
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.mixture import GaussianMixture
+from sklearn.mixture import BayesianGaussianMixture
+from sklearn.datasets import fetch_olivetti_faces
+from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.decomposition import PCA 
 
 # %%
 blob_centers = np.array(
@@ -214,5 +222,93 @@ log_reg.score(X_test, y_test)
 
 # %%
 np.mean(y_train_partially_propagated == y_train[partially_propagated])
+
+# %%
+X, y = make_moons(n_samples=1000, noise=.05)
+dbscan = DBSCAN(eps=.05, min_samples=5)
+dbscan.fit(X)
+
+# %%
+dbscan.labels_
+
+# %%
+len(dbscan.core_sample_indices_)
+
+# %%
+knn = KNeighborsClassifier(n_neighbors=50)
+knn.fit(dbscan.components_, dbscan.labels_[dbscan.core_sample_indices_])
+
+# %%
+X_new = np.array([[-.05, 0], [0, .5], [1, -.01], [2, 1]])
+knn.predict(X_new)
+knn.predict_proba(X_new)
+# %%
+y_dist, y_pred_idx = knn.kneighbors(X_new, n_neighbors=1)
+y_pred = dbscan.labels_[dbscan.core_sample_indices_][y_pred_idx]
+y_pred[y_dist > .2] = -1
+y_pred.ravel()
+
+# %%
+gm = GaussianMixture(n_components=3, n_init=10)
+gm.fit(X)
+
+# %%
+gm.weights_ 
+gm.means_
+gm.covariances_
+
+# %%
+gm.converged_
+gm.n_iter_
+
+# %%
+gm.predict(X)
+gm.predict_proba(X)
+
+# %%
+X_new, y_new = gm.sample(6)
+X_new 
+y_new
+
+# %%
+gm.score_samples(X)
+
+# %%
+densities = gm.score_samples(X)
+density_threshold = np.percentile(densities, 4)
+anomalies = X[densities < density_threshold]
+
+# %%
+gm.bic(X)
+
+# %%
+gm.aic(X)
+
+# %%
+bgm = BayesianGaussianMixture(n_components=10, n_init=10)
+bgm.fit(X)
+np.round(bgm.weights_, 2)
+
+# %%
+olivetti = fetch_olivetti_faces()
+print(olivetti.DESCR)
+
+# %%
+olivetti.target
+
+# %%
+strat_split = StratifiedShuffleSplit(n_splits=1, test_size=40, random_state=42)
+train_valid_idx, test_idx = next(strat_split.split(olivetti.data, olivetti.target)) 
+X_train_valid = olivetti.data[train_valid_idx]
+y_train_valid = olivetti.target[train_valid_idx]
+X_test = olivetti.data[test_idx]
+y_test = olivetti.target[test_idx]
+
+strat_split = StratifiedShuffleSplit(n_splits=1, test_size=80, random_state=43)
+train_idx, valid_idx = next(strat_split.split(X_train_valid, y_train_valid)) 
+X_train = X_train_valid[train_idx]
+y_train = y_train_valid[train_idx]
+X_valid = X_train_valid[valid_idx]
+y_valid = y_train_valid[valid_idx]
 
 # %%
